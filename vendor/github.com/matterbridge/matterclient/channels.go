@@ -239,25 +239,15 @@ func (m *Client) UpdateChannelsTeam(teamID string) error {
 
 	var moreChannels []*model.Channel
 
-	for {
-		mmchannels, resp, err = m.Client.GetPublicChannelsForTeam(ctx, teamID, idx, max, "")
-		if err == nil {
-			break
-		}
-
-		if err := m.HandleRatelimit("GetPublicChannelsForTeam", resp); err != nil {
-			return err
-		}
+	// Skip this if the user's role contains system_guest
+	currentUser, _, err := m.Client.GetMe(ctx, "")
+	if err != nil {
+		return err
 	}
-
-	for len(mmchannels) > 0 {
-		moreChannels = append(moreChannels, mmchannels...)
-
+	if !strings.Contains(currentUser.Roles, "system_guest") {
 		for {
 			mmchannels, resp, err = m.Client.GetPublicChannelsForTeam(ctx, teamID, idx, max, "")
 			if err == nil {
-				idx++
-
 				break
 			}
 
@@ -265,7 +255,25 @@ func (m *Client) UpdateChannelsTeam(teamID string) error {
 				return err
 			}
 		}
+
+		for len(mmchannels) > 0 {
+			moreChannels = append(moreChannels, mmchannels...)
+
+			for {
+				mmchannels, resp, err = m.Client.GetPublicChannelsForTeam(ctx, teamID, idx, max, "")
+				if err == nil {
+					idx++
+
+					break
+				}
+
+				if err := m.HandleRatelimit("GetPublicChannelsForTeam", resp); err != nil {
+					return err
+				}
+			}
+		}
 	}
+	// END SKIP
 
 	for idx, t := range m.OtherTeams {
 		if t.ID == teamID {
