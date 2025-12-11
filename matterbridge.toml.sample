@@ -421,6 +421,15 @@ NickFormatter="plain"
 #OPTIONAL (default 4)
 NicksPerRow=4
 
+
+#Skip messages from the bot user
+#The usage scenario for this feature would be a one-way connection is made from Mattermost to 
+#another service. 
+#DO NOT SET TO TRUE IF TWO WAY CONNECTIONS CONFIGURED
+#OPTIONAL (default true)
+SkipBotmessages=true
+
+
 #Skip the Mattermost server version checks that are normally done when connecting.
 #The usage scenario for this feature would be when the Mattermost instance is hosted behind a
 #reverse proxy that suppresses "non-standard" response headers in flight.

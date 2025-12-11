@@ -229,8 +229,10 @@ func (b *Bmattermost) skipMessage(message *matterclient.Message) bool {
 
 	// Ignore messages sent from a user logged in as the bot
 	if b.mc.User.Username == message.Username {
-		b.Log.Debug("message from same user as bot, ignoring")
-		return true
+		if b.GetBool("SkipBotMessages") {
+			b.Log.Debugf("message from %s same user as bot %s, ignoring", message.Username, b.mc.User.Username)
+			return true
+		}
 	}
 
 	// if the message has reactions don't repost it (for now, until we can correlate reaction with message)
@@ -249,6 +251,7 @@ func (b *Bmattermost) skipMessage(message *matterclient.Message) bool {
 		message.Raw.EventType() == model.WebsocketEventPostDeleted) {
 		return true
 	}
+	b.Log.Debug("Posting message")
 	return false
 }
 
